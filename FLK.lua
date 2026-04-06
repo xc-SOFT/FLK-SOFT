@@ -1,17 +1,5 @@
--- LocalScript inside StarterPlayerScripts
 script:SetAttribute("RobloxTranslationEnabled", false)
 
--- ✅ ПРЕДОПРЕДЕЛЕНИЕ ПЕРЕМЕННЫХ ДЛЯ НАСТРОЕК БЕЗ КАВЫЧЕК
--- Это позволяет писать: ESP_DefaultColor = Red (без кавычек)
--- И также: ESP_DefaultColor = "Red" (с кавычками) - оба способа работают!
-if not Red then Red = "Red" end
-if not Blue then Blue = "Blue" end
-if not Green then Green = "Green" end
-if not Magenta then Magenta = "Magenta" end
-if not ON then ON = "ON" end
-if not OFF then OFF = "OFF" end
-
--- ✅ ПРОВЕРКА: Если уже запущен такой скрипт - очищаем его
 if _G.FLK_ScriptRunning then
     if _G.FLK_CleanupFunction then
         _G.FLK_CleanupFunction()
@@ -27,93 +15,6 @@ local player = Players.LocalPlayer
 local workspace = game:GetService("Workspace")
 local camera = workspace.CurrentCamera
 
--- ✅ ПРОВЕРКА НАСТРОЕК ПЕРЕД ЗАПУСКОМ
-local configError = false
-local configErrorMessage = ""
-
--- Проверка на дубликаты цвета
-local colorCount = 0
-if _G.ESP_DefaultColor then
-    if _G._FLK_ColorSet then
-        colorCount = 2
-    else
-        colorCount = 1
-        _G._FLK_ColorSet = true
-    end
-end
-
-if colorCount >= 2 then
-    configError = true
-    local success, translator = pcall(function()
-        return LocalizationService:GetTranslatorForPlayerAsync(player)
-    end)
-    local isRussian = false
-    if success and translator then
-        local localeId = translator.LocaleId
-        isRussian = (localeId:sub(1, 2) == "ru")
-    end
-    configErrorMessage = isRussian and 
-        "Ошибка настроек: указан двойной цвет. Установлен Blue по умолчанию" or
-        "Settings error: duplicate color. Defaulted to Blue"
-end
-
--- ✅ КАРТА ЦВЕТОВ
-local colorMap = {
-    ["Blue"] = Color3.fromRGB(0, 170, 255),
-    ["Red"] = Color3.fromRGB(255, 0, 0),
-    ["Green"] = Color3.fromRGB(0, 255, 0),
-    ["Magenta"] = Color3.fromRGB(255, 0, 255)
-}
-
--- Получаем имя цвета (поддержка с кавычками и без)
-local selectedColorName = "Blue"
-if _G.ESP_DefaultColor then
-    local colorVal = _G.ESP_DefaultColor
-    local colorStr = nil
-    
-    -- Если это строка (с кавычками)
-    if type(colorVal) == "string" then
-        colorStr = colorVal
-    -- Если это переменная (без кавычек), преобразуем в строку
-    elseif colorVal ~= nil then
-        colorStr = tostring(colorVal)
-    end
-    
-    if colorStr and colorMap[colorStr] then
-        selectedColorName = colorStr
-    else
-        -- ❌ Несуществующий цвет
-        configError = true
-        local success, translator = pcall(function()
-            return LocalizationService:GetTranslatorForPlayerAsync(player)
-        end)
-        local isRussian = false
-        if success and translator then
-            local localeId = translator.LocaleId
-            isRussian = (localeId:sub(1, 2) == "ru")
-        end
-        local invalidColor = colorStr or "unknown"
-        configErrorMessage = isRussian and 
-            "Ошибка настроек: несуществующий цвет '"..invalidColor.."'. Установлен Blue по умолчанию" or
-            "Settings error: invalid color '"..invalidColor.."'. Defaulted to Blue"
-        selectedColorName = "Blue"
-    end
-end
-
-local ESP_FILL = colorMap[selectedColorName]
-local ESP_OUTLINE = ESP_FILL
-
--- ✅ ПРОВЕРКА ЛИНИЙ (с кавычками и без)
-local espLinesEnabled = false
-if _G.ESP_Lines then
-    local linesVal = _G.ESP_Lines
-    local linesStr = type(linesVal) == "string" and linesVal or tostring(linesVal)
-    if linesStr == "ON" then
-        espLinesEnabled = true
-    end
-end
-
--- ✅ ПРОВЕРКА PLACE ID
 local FLICK_PLACE_ID = 136801880565837
 local currentPlaceId = game.PlaceId
 
@@ -122,6 +23,7 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     local success, translator = pcall(function()
         return LocalizationService:GetTranslatorForPlayerAsync(player)
     end)
+    
     if success and translator then
         local localeId = translator.LocaleId
         isRussian = (localeId:sub(1, 2) == "ru")
@@ -131,12 +33,12 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     notifGui.Name = "FLK_WrongGameNotification"
     notifGui.ResetOnSpawn = false
     notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notifGui.Parent = game.CoreGui
+    notifGui.Parent = game.CoreGui  
     
     local notifFrame = Instance.new("Frame")
     notifFrame.Name = "Notification"
     notifFrame.Size = UDim2.new(0, 320, 0, 60)
-    notifFrame.Position = UDim2.new(1, 350, 1, -80)
+    notifFrame.Position = UDim2.new(1, 350, 1, -80) 
     notifFrame.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
     notifFrame.BorderSizePixel = 0
     notifFrame.Parent = notifGui
@@ -175,11 +77,23 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     textLabel.TextWrapped = true
     textLabel.Parent = notifFrame
     
-    notifFrame:TweenPosition(UDim2.new(1, -340, 1, -80), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.4, true)
+    notifFrame:TweenPosition(
+        UDim2.new(1, -340, 1, -80),
+        Enum.EasingDirection.Out,
+        Enum.EasingStyle.Quart,
+        0.4,
+        true
+    )
     
     task.delay(5, function()
         if notifFrame and notifFrame.Parent then
-            notifFrame:TweenPosition(UDim2.new(1, 350, 1, -80), Enum.EasingDirection.In, Enum.EasingStyle.Quart, 0.4, true)
+            notifFrame:TweenPosition(
+                UDim2.new(1, 350, 1, -80),
+                Enum.EasingDirection.In,
+                Enum.EasingStyle.Quart,
+                0.4,
+                true
+            )
             task.wait(0.4)
             notifGui:Destroy()
         end
@@ -190,74 +104,16 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     else
         print("⚠️ FLK SOFT - Please join Flick to use this script")
     end
+    
     return
 end
 
--- ✅ ПОКАЗ УВЕДОМЛЕНИЯ ОБ ОШИБКЕ НАСТРОЕК
-if configError then
-    local success, translator = pcall(function()
-        return LocalizationService:GetTranslatorForPlayerAsync(player)
-    end)
-    local isRussian = false
-    if success and translator then
-        local localeId = translator.LocaleId
-        isRussian = (localeId:sub(1, 2) == "ru")
-    end
-    
-    local notifGui = Instance.new("ScreenGui")
-    notifGui.Name = "FLK_ConfigErrorNotification"
-    notifGui.ResetOnSpawn = false
-    notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notifGui.Parent = game.CoreGui
-    
-    local notifFrame = Instance.new("Frame")
-    notifFrame.Name = "ConfigError"
-    notifFrame.Size = UDim2.new(0, 380, 0, 55)
-    notifFrame.Position = UDim2.new(1, 400, 1, -75)
-    notifFrame.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
-    notifFrame.BorderSizePixel = 0
-    notifFrame.Parent = notifGui
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = notifFrame
-    
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(255, 100, 100)
-    stroke.Thickness = 2
-    stroke.Parent = notifFrame
-    
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, -20, 1, -10)
-    textLabel.Position = UDim2.new(0, 10, 0, 5)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = configErrorMessage
-    textLabel.TextColor3 = Color3.new(1, 1, 1)
-    textLabel.Font = Enum.Font.GothamBold
-    textLabel.TextSize = 12
-    textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    textLabel.TextYAlignment = Enum.TextYAlignment.Center
-    textLabel.TextWrapped = true
-    textLabel.Parent = notifFrame
-    
-    notifFrame:TweenPosition(UDim2.new(1, -400, 1, -75), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.4, true)
-    
-    task.delay(5, function()
-        if notifFrame and notifFrame.Parent then
-            notifFrame:TweenPosition(UDim2.new(1, 400, 1, -75), Enum.EasingDirection.In, Enum.EasingStyle.Quart, 0.4, true)
-            task.wait(0.4)
-            notifGui:Destroy()
-        end
-        _G.FLK_ConfigErrorActive = false
-    end)
-    
-    _G.FLK_ConfigErrorActive = true
-    print("⚠️ FLK SOFT - "..configErrorMessage)
-end
-
+local ESP_FILL = Color3.fromRGB(0, 170, 255)
+local ESP_OUTLINE = Color3.fromRGB(0, 255, 255)
 local GUI_BG = Color3.fromRGB(35, 35, 45)
 local GUI_BTN = Color3.fromRGB(50, 50, 70)
 local GUI_ACTIVE = Color3.fromRGB(0, 100, 50)
+
 local FOV = 120
 local AIM_SMOOTHNESS = 0.2
 local PREDICTION_FACTOR = 0.05
@@ -270,14 +126,17 @@ local keybindLock = false
 local highlightedPlayers = {}
 local currentTarget = nil
 local espLines = {}
+local espLinesEnabled = false
 local selectedColorIndex = 1
 local notificationActive = false
+
 local keybinds = { Menu = Enum.KeyCode.K, Aim = Enum.KeyCode.LeftAlt }
 
 local isRussian = false
 local success, translator = pcall(function()
     return LocalizationService:GetTranslatorForPlayerAsync(player)
 end)
+
 if success and translator then
     local localeId = translator.LocaleId
     isRussian = (localeId:sub(1, 2) == "ru")
@@ -289,6 +148,7 @@ local function isInLobbyTeam(plr)
 end
 
 local colorNames = isRussian and {"Голубой", "Красный", "Зелёный", "Пурпурный"} or {"Blue", "Red", "Green", "Magenta"}
+
 local colorOptions = {
     {Color3.fromRGB(0, 170, 255), colorNames[1]},
     {Color3.fromRGB(255, 0, 0), colorNames[2]},
@@ -304,11 +164,23 @@ local function formatKey(kc)
 end
 
 local labels = {
-    title="FLK SOFT", esp="👁️ ESP", espOn="👁️ ESP: ON", espOff="👁️ ESP",
-    aim="🎯 Aimbot", aimOn="🎯 Aimbot: ON", aimOff="🎯 Aimbot",
-    hotkeys="⌨️ Hotkeys", espSettings="⚙️ ESP Settings",
-    menuKey="Menu:", aimKey="Aim:", back="←", pressKey="Press...",
-    lines="ESP Lines", linesOn="ESP Lines ON", linesOff="ESP Lines OFF", color="Color:"
+    title="FLK SOFT",
+    esp="👁️ ESP",
+    espOn="👁️ ESP: ON",
+    espOff="👁️ ESP",
+    aim="🎯 Aimbot",
+    aimOn="🎯 Aimbot: ON",
+    aimOff="🎯 Aimbot",
+    hotkeys="⌨️ Hotkeys",
+    espSettings="⚙️ ESP Settings",
+    menuKey="Menu:",
+    aimKey="Aim:",
+    back="←",
+    pressKey="Press...",
+    lines="ESP Lines",
+    linesOn="ESP Lines ON",
+    linesOff="ESP Lines OFF",
+    color="Color:"
 }
 
 local function createUIElement(e,p) for k,v in pairs(p)do e[k]=v end;return e end
@@ -442,8 +314,14 @@ local function setupESP(plr)
         if old then old:Destroy()end
         if espEnabled then
             local hl=Instance.new("Highlight")
-            hl.Name="ESP_HL";hl.Adornee=chr;hl.FillColor=ESP_FILL;hl.OutlineColor=ESP_OUTLINE
-            hl.FillTransparency=0.5;hl.OutlineTransparency=0.3;hl.Enabled=true;hl.Parent=chr
+            hl.Name="ESP_HL"
+            hl.Adornee=chr
+            hl.FillColor=ESP_FILL
+            hl.OutlineColor=ESP_OUTLINE
+            hl.FillTransparency=0.5
+            hl.OutlineTransparency=0.3
+            hl.Enabled=true
+            hl.Parent=chr
             highlightedPlayers[plr]=hl
         end
     end
@@ -457,6 +335,7 @@ end
 
 local connections = {}
 local scriptActive = true
+
 local function connectEvent(event, callback)
     local conn = event:Connect(callback)
     table.insert(connections, conn)
@@ -499,7 +378,11 @@ local espConnection = connectEvent(RunService.RenderStepped, function()
     else for p,_ in pairs(highlightedPlayers)do removeESP(p)end end
 end)
 
-connectEvent(Players.PlayerAdded, function(p) if espEnabled and p~=player and not isInLobbyTeam(p) then setupESP(p) end end)
+connectEvent(Players.PlayerAdded, function(p)
+    if espEnabled and p~=player and not isInLobbyTeam(p) then 
+        setupESP(p)
+    end 
+end)
 connectEvent(Players.PlayerRemoving, function(p)removeESP(p)end)
 
 local aimbotConnection = connectEvent(RunService.RenderStepped, function()
@@ -551,8 +434,9 @@ local function updateLabels()
 end
 
 local function showMinimizeNotification()
-    if notificationActive or _G.FLK_ConfigErrorActive then return end
+    if notificationActive then return end
     notificationActive = true
+    
     local keyStr = formatKey(keybinds.Menu)
     local message = "Press ["..keyStr.."] to reopen menu"
     
@@ -560,7 +444,7 @@ local function showMinimizeNotification()
     notifGui.Name = "FLK_MinimizeNotification"
     notifGui.ResetOnSpawn = false
     notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notifGui.Parent = game.CoreGui
+    notifGui.Parent = game.CoreGui  
     
     local notifFrame = Instance.new("Frame")
     notifFrame.Name = "Notification"
@@ -570,8 +454,14 @@ local function showMinimizeNotification()
     notifFrame.BorderSizePixel = 0
     notifFrame.Parent = notifGui
     
-    local corner = Instance.new("UICorner");corner.CornerRadius = UDim.new(0, 10);corner.Parent = notifFrame
-    local stroke = Instance.new("UIStroke");stroke.Color = ESP_OUTLINE;stroke.Thickness = 2;stroke.Parent = notifFrame
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = notifFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = ESP_OUTLINE
+    stroke.Thickness = 2
+    stroke.Parent = notifFrame
     
     local textLabel = Instance.new("TextLabel")
     textLabel.Size = UDim2.new(1, -20, 1, -10)
@@ -585,11 +475,23 @@ local function showMinimizeNotification()
     textLabel.TextYAlignment = Enum.TextYAlignment.Center
     textLabel.Parent = notifFrame
     
-    notifFrame:TweenPosition(UDim2.new(1, -300, 1, -70), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.4, true)
+    notifFrame:TweenPosition(
+        UDim2.new(1, -300, 1, -70),
+        Enum.EasingDirection.Out,
+        Enum.EasingStyle.Quart,
+        0.4,
+        true
+    )
     
     task.delay(3, function()
         if notifFrame and notifFrame.Parent then
-            notifFrame:TweenPosition(UDim2.new(1, 300, 1, -70), Enum.EasingDirection.In, Enum.EasingStyle.Quart, 0.4, true)
+            notifFrame:TweenPosition(
+                UDim2.new(1, 300, 1, -70),
+                Enum.EasingDirection.In,
+                Enum.EasingStyle.Quart,
+                0.4,
+                true
+            )
             task.wait(0.4)
             notifGui:Destroy()
         end
@@ -601,28 +503,64 @@ local function toggleGui()
     if not scriptActive then return end
     menuVisible=not menuVisible
     if menuVisible then 
-        mainGuiFrame.Visible=true;contentFrame.Visible=true;espSettingsFrame.Visible=false;hotkeysFrame.Visible=false
+        mainGuiFrame.Visible=true
+        contentFrame.Visible=true
+        espSettingsFrame.Visible=false
+        hotkeysFrame.Visible=false
     else 
         mainGuiFrame.Visible=false
         showMinimizeNotification()
         local keyStr = formatKey(keybinds.Menu)
-        if isRussian then print("Нажмите ["..keyStr.."] чтобы открыть меню")
-        else print("Press ["..keyStr.."] to reopen menu") end
+        if isRussian then
+            print("Нажмите ["..keyStr.."] чтобы открыть меню")
+        else
+            print("Press ["..keyStr.."] to reopen menu")
+        end
         pcall(function() 
-            if isRussian then player:Chat("/me Нажмите ["..keyStr.."] чтобы открыть меню")
-            else player:Chat("/me Press ["..keyStr.."] to reopen menu") end
+            if isRussian then
+                player:Chat("/me Нажмите ["..keyStr.."] чтобы открыть меню")
+            else
+                player:Chat("/me Press ["..keyStr.."] to reopen menu")
+            end
         end)
     end
 end
 
 local function cleanupAndDestroy()
-    scriptActive = false;espEnabled = false;aimbotEnabled = false;espLinesEnabled = false
-    for p,_ in pairs(highlightedPlayers) do removeESP(p) end;highlightedPlayers = {}
-    for p,line in pairs(espLines) do if line and line.Parent then line:Destroy() end end;espLines = {}
-    for _,conn in ipairs(connections) do pcall(function() if conn and conn.Connected then conn:Disconnect() end end) end;connections = {}
-    _G.FLK_ScriptRunning = false;_G.FLK_CleanupFunction = nil;_G.FLK_ConfigErrorActive = false
-    pcall(function() if screenGui then screenGui:Destroy() end end)
-    if isRussian then print("FLK SOFT - Скрипт закрыт") else print("FLK SOFT - Script closed") end
+    scriptActive = false
+    espEnabled = false
+    aimbotEnabled = false
+    espLinesEnabled = false
+    
+    for p,_ in pairs(highlightedPlayers) do removeESP(p) end
+    highlightedPlayers = {}
+    
+    for p,line in pairs(espLines) do
+        if line and line.Parent then line:Destroy() end
+    end
+    espLines = {}
+    
+    for _,conn in ipairs(connections) do
+        pcall(function()
+            if conn and conn.Connected then
+                conn:Disconnect()
+            end
+        end)
+    end
+    connections = {}
+    
+    _G.FLK_ScriptRunning = false
+    _G.FLK_CleanupFunction = nil
+    
+    pcall(function()
+        if screenGui then screenGui:Destroy() end
+    end)
+    
+    if isRussian then
+        print("FLK SOFT - Скрипт закрыт")
+    else
+        print("FLK SOFT - Script closed")
+    end
 end
 
 _G.FLK_CleanupFunction = cleanupAndDestroy
@@ -651,6 +589,10 @@ end)
 
 task.wait(1)
 if scriptActive then
-    for _,p in ipairs(Players:GetPlayers())do if p~=player and not isInLobbyTeam(p) then setupESP(p)end end
+    for _,p in ipairs(Players:GetPlayers())do 
+        if p~=player and not isInLobbyTeam(p) then 
+            setupESP(p)
+        end 
+    end
     updateLabels()
 end
