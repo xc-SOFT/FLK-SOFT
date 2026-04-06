@@ -1,5 +1,7 @@
+-- LocalScript inside StarterPlayerScripts
 script:SetAttribute("RobloxTranslationEnabled", false)
 
+-- ✅ ПРОВЕРКА: Если уже запущен такой скрипт - очищаем его
 if _G.FLK_ScriptRunning then
     if _G.FLK_CleanupFunction then
         _G.FLK_CleanupFunction()
@@ -15,10 +17,96 @@ local player = Players.LocalPlayer
 local workspace = game:GetService("Workspace")
 local camera = workspace.CurrentCamera
 
+-- ✅ ПРОВЕРКА НАСТРОЕК ПЕРЕД ЗАПУСКОМ (БЕЗ КАВЫЧЕК)
+local configError = false
+local configErrorMessage = ""
+local invalidColorError = false
+
+-- Проверка на дубликаты цвета
+local colorCount = 0
+if _G.ESP_DefaultColor then
+    if _G._FLK_ColorSet then
+        colorCount = 2 -- Дубликат!
+    else
+        colorCount = 1
+        _G._FLK_ColorSet = true
+    end
+end
+
+-- Если дубликат цвета - ошибка
+if colorCount >= 2 then
+    configError = true
+    local success, translator = pcall(function()
+        return LocalizationService:GetTranslatorForPlayerAsync(player)
+    end)
+    local isRussian = false
+    if success and translator then
+        local localeId = translator.LocaleId
+        isRussian = (localeId:sub(1, 2) == "ru")
+    end
+    configErrorMessage = isRussian and 
+        "Ошибка настроек: указан двойной цвет. Установлен Blue по умолчанию" or
+        "Settings error: duplicate color. Defaulted to Blue"
+end
+
+-- ✅ КАРТА ЦВЕТОВ
+local colorMap = {
+    ["Blue"] = Color3.fromRGB(0, 170, 255),
+    ["Red"] = Color3.fromRGB(255, 0, 0),
+    ["Green"] = Color3.fromRGB(0, 255, 0),
+    ["Magenta"] = Color3.fromRGB(255, 0, 255)
+}
+
+-- Получаем имя цвета из переменной
+local selectedColorName = "Blue" -- По умолчанию
+if _G.ESP_DefaultColor then
+    local colorVar = _G.ESP_DefaultColor
+    local colorStr = tostring(colorVar)
+    
+    -- ✅ ПРОВЕРКА: Существует ли такой цвет?
+    if colorMap[colorStr] then
+        selectedColorName = colorStr
+    else
+        -- ❌ ЦВЕТ НЕ СУЩЕСТВУЕТ!
+        invalidColorError = true
+        configError = true
+        
+        local success, translator = pcall(function()
+            return LocalizationService:GetTranslatorForPlayerAsync(player)
+        end)
+        local isRussian = false
+        if success and translator then
+            local localeId = translator.LocaleId
+            isRussian = (localeId:sub(1, 2) == "ru")
+        end
+        
+        configErrorMessage = isRussian and 
+            "Ошибка настроек: несуществующий цвет '"..colorStr.."'. Установлен Blue по умолчанию" or
+            "Settings error: invalid color '"..colorStr.."'. Defaulted to Blue"
+        
+        selectedColorName = "Blue" -- По умолчанию
+    end
+end
+
+local ESP_FILL = colorMap[selectedColorName]
+local ESP_OUTLINE = ESP_FILL
+
+-- ✅ ПРОВЕРКА ЛИНИЙ (БЕЗ КАВЫЧЕК)
+local espLinesEnabled = false
+if _G.ESP_Lines then
+    local linesVar = _G.ESP_Lines
+    local linesStr = tostring(linesVar)
+    if linesStr == "ON" then
+        espLinesEnabled = true
+    end
+end
+
+-- ✅ ПРОВЕРКА PLACE ID (Flick = 136801880565837)
 local FLICK_PLACE_ID = 136801880565837
 local currentPlaceId = game.PlaceId
 
 if currentPlaceId ~= FLICK_PLACE_ID then
+    -- Определяем язык
     local isRussian = false
     local success, translator = pcall(function()
         return LocalizationService:GetTranslatorForPlayerAsync(player)
@@ -29,6 +117,7 @@ if currentPlaceId ~= FLICK_PLACE_ID then
         isRussian = (localeId:sub(1, 2) == "ru")
     end
     
+    -- Показываем уведомление
     local notifGui = Instance.new("ScreenGui")
     notifGui.Name = "FLK_WrongGameNotification"
     notifGui.ResetOnSpawn = false
@@ -108,8 +197,80 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     return
 end
 
-local ESP_FILL = Color3.fromRGB(0, 170, 255)
-local ESP_OUTLINE = Color3.fromRGB(0, 255, 255)
+-- ✅ ПОКАЗ УВЕДОМЛЕНИЯ ОБ ОШИБКЕ НАСТРОЕК (включая несуществующий цвет)
+if configError then
+    local success, translator = pcall(function()
+        return LocalizationService:GetTranslatorForPlayerAsync(player)
+    end)
+    local isRussian = false
+    if success and translator then
+        local localeId = translator.LocaleId
+        isRussian = (localeId:sub(1, 2) == "ru")
+    end
+    
+    local notifGui = Instance.new("ScreenGui")
+    notifGui.Name = "FLK_ConfigErrorNotification"
+    notifGui.ResetOnSpawn = false
+    notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    notifGui.Parent = game.CoreGui
+    
+    local notifFrame = Instance.new("Frame")
+    notifFrame.Name = "ConfigError"
+    notifFrame.Size = UDim2.new(0, 380, 0, 55) -- Увеличил ширину для длинных сообщений
+    notifFrame.Position = UDim2.new(1, 400, 1, -75)
+    notifFrame.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+    notifFrame.BorderSizePixel = 0
+    notifFrame.Parent = notifGui
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = notifFrame
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 100, 100)
+    stroke.Thickness = 2
+    stroke.Parent = notifFrame
+    
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, -20, 1, -10)
+    textLabel.Position = UDim2.new(0, 10, 0, 5)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = configErrorMessage
+    textLabel.TextColor3 = Color3.new(1, 1, 1)
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextSize = 12
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextYAlignment = Enum.TextYAlignment.Center
+    textLabel.TextWrapped = true
+    textLabel.Parent = notifFrame
+    
+    notifFrame:TweenPosition(
+        UDim2.new(1, -400, 1, -75),
+        Enum.EasingDirection.Out,
+        Enum.EasingStyle.Quart,
+        0.4,
+        true
+    )
+    
+    task.delay(5, function()
+        if notifFrame and notifFrame.Parent then
+            notifFrame:TweenPosition(
+                UDim2.new(1, 400, 1, -75),
+                Enum.EasingDirection.In,
+                Enum.EasingStyle.Quart,
+                0.4,
+                true
+            )
+            task.wait(0.4)
+            notifGui:Destroy()
+        end
+        _G.FLK_ConfigErrorActive = false
+    end)
+    
+    _G.FLK_ConfigErrorActive = true
+    print("⚠️ FLK SOFT - "..configErrorMessage)
+end
+
 local GUI_BG = Color3.fromRGB(35, 35, 45)
 local GUI_BTN = Color3.fromRGB(50, 50, 70)
 local GUI_ACTIVE = Color3.fromRGB(0, 100, 50)
@@ -126,12 +287,12 @@ local keybindLock = false
 local highlightedPlayers = {}
 local currentTarget = nil
 local espLines = {}
-local espLinesEnabled = false
 local selectedColorIndex = 1
 local notificationActive = false
 
 local keybinds = { Menu = Enum.KeyCode.K, Aim = Enum.KeyCode.LeftAlt }
 
+-- 🔍 Определение языка игрока
 local isRussian = false
 local success, translator = pcall(function()
     return LocalizationService:GetTranslatorForPlayerAsync(player)
@@ -434,7 +595,7 @@ local function updateLabels()
 end
 
 local function showMinimizeNotification()
-    if notificationActive then return end
+    if notificationActive or _G.FLK_ConfigErrorActive then return end
     notificationActive = true
     
     local keyStr = formatKey(keybinds.Menu)
@@ -551,6 +712,7 @@ local function cleanupAndDestroy()
     
     _G.FLK_ScriptRunning = false
     _G.FLK_CleanupFunction = nil
+    _G.FLK_ConfigErrorActive = false
     
     pcall(function()
         if screenGui then screenGui:Destroy() end
