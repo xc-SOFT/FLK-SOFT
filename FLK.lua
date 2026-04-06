@@ -1,7 +1,5 @@
--- LocalScript inside StarterPlayerScripts
 script:SetAttribute("RobloxTranslationEnabled", false)
 
--- ✅ ПРОВЕРКА: Если уже запущен такой скрипт - очищаем его
 if _G.FLK_ScriptRunning then
     if _G.FLK_CleanupFunction then
         _G.FLK_CleanupFunction()
@@ -17,12 +15,10 @@ local player = Players.LocalPlayer
 local workspace = game:GetService("Workspace")
 local camera = workspace.CurrentCamera
 
--- ✅ ПРОВЕРКА PLACE ID (Flick = 136801880565837)
 local FLICK_PLACE_ID = 136801880565837
 local currentPlaceId = game.PlaceId
 
 if currentPlaceId ~= FLICK_PLACE_ID then
-    -- Определяем язык
     local isRussian = false
     local success, translator = pcall(function()
         return LocalizationService:GetTranslatorForPlayerAsync(player)
@@ -33,17 +29,16 @@ if currentPlaceId ~= FLICK_PLACE_ID then
         isRussian = (localeId:sub(1, 2) == "ru")
     end
     
-    -- Показываем уведомление
     local notifGui = Instance.new("ScreenGui")
     notifGui.Name = "FLK_WrongGameNotification"
     notifGui.ResetOnSpawn = false
     notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notifGui.Parent = game.CoreGui  -- ✅ ИСПРАВЛЕНО: было playerGui
+    notifGui.Parent = game.CoreGui  
     
     local notifFrame = Instance.new("Frame")
     notifFrame.Name = "Notification"
     notifFrame.Size = UDim2.new(0, 320, 0, 60)
-    notifFrame.Position = UDim2.new(1, 350, 1, -80) -- За экраном справа
+    notifFrame.Position = UDim2.new(1, 350, 1, -80) 
     notifFrame.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
     notifFrame.BorderSizePixel = 0
     notifFrame.Parent = notifGui
@@ -82,7 +77,6 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     textLabel.TextWrapped = true
     textLabel.Parent = notifFrame
     
-    -- Анимация выезда справа
     notifFrame:TweenPosition(
         UDim2.new(1, -340, 1, -80),
         Enum.EasingDirection.Out,
@@ -91,7 +85,6 @@ if currentPlaceId ~= FLICK_PLACE_ID then
         true
     )
     
-    -- Исчезновение через 5 секунд
     task.delay(5, function()
         if notifFrame and notifFrame.Parent then
             notifFrame:TweenPosition(
@@ -106,14 +99,12 @@ if currentPlaceId ~= FLICK_PLACE_ID then
         end
     end)
     
-    -- Сообщение в консоль
     if isRussian then
         print("⚠️ FLK SOFT - Зайдите во Flick для использования скрипта")
     else
         print("⚠️ FLK SOFT - Please join Flick to use this script")
     end
     
-    -- Прерываем дальнейшее выполнение скрипта
     return
 end
 
@@ -141,7 +132,6 @@ local notificationActive = false
 
 local keybinds = { Menu = Enum.KeyCode.K, Aim = Enum.KeyCode.LeftAlt }
 
--- 🔍 Определение языка игрока
 local isRussian = false
 local success, translator = pcall(function()
     return LocalizationService:GetTranslatorForPlayerAsync(player)
@@ -152,7 +142,6 @@ if success and translator then
     isRussian = (localeId:sub(1, 2) == "ru")
 end
 
--- ✅ ФУНКЦИЯ ПРОВЕРКИ КОМАНДЫ "Lobby"
 local function isInLobbyTeam(plr)
     local team = plr.Team
     return team and team.Name == "Lobby"
@@ -318,7 +307,6 @@ menuKeyButton.MouseButton1Click:Connect(function()changeKeybind(menuKeyButton,"M
 aimKeyButton.MouseButton1Click:Connect(function()changeKeybind(aimKeyButton,"Aim")end)
 
 local function setupESP(plr)
-    -- ✅ ПРОВЕРКА: Не применять ESP на игроков в команде "Lobby"
     if plr==player or isInLobbyTeam(plr) then return end
     local function apply(chr)
         if not chr or not chr:FindFirstChild("HumanoidRootPart")then return end
@@ -363,7 +351,6 @@ local espLinesConnection = connectEvent(RunService.RenderStepped, function()
         for p,line in pairs(espLines) do if line and line.Parent then line:Destroy() end end
         espLines = {}
         for _,p in ipairs(Players:GetPlayers()) do
-            -- ✅ ПРОВЕРКА: Не рисовать линии на игроков в команде "Lobby"
             if p~=player and not isInLobbyTeam(p) and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                 local targetHRP = p.Character.HumanoidRootPart
                 local targetPos = targetHRP.Position
@@ -383,7 +370,6 @@ local espConnection = connectEvent(RunService.RenderStepped, function()
     if not scriptActive then return end
     if espEnabled then
         for _,p in ipairs(Players:GetPlayers())do 
-            -- ✅ ПРОВЕРКА: Не применять ESP на игроков в команде "Lobby"
             if p~=player and not isInLobbyTeam(p) and not highlightedPlayers[p] and p.Character and p.Character:FindFirstChild("HumanoidRootPart")then 
                 setupESP(p)
             end 
@@ -393,7 +379,6 @@ local espConnection = connectEvent(RunService.RenderStepped, function()
 end)
 
 connectEvent(Players.PlayerAdded, function(p)
-    -- ✅ ПРОВЕРКА: Не применять ESP на игроков в команде "Lobby"
     if espEnabled and p~=player and not isInLobbyTeam(p) then 
         setupESP(p)
     end 
@@ -459,7 +444,7 @@ local function showMinimizeNotification()
     notifGui.Name = "FLK_MinimizeNotification"
     notifGui.ResetOnSpawn = false
     notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notifGui.Parent = game.CoreGui  -- ✅ ИСПРАВЛЕНО: было playerGui
+    notifGui.Parent = game.CoreGui  
     
     local notifFrame = Instance.new("Frame")
     notifFrame.Name = "Notification"
@@ -605,7 +590,6 @@ end)
 task.wait(1)
 if scriptActive then
     for _,p in ipairs(Players:GetPlayers())do 
-        -- ✅ ПРОВЕРКА: Не применять ESP на игроков в команде "Lobby"
         if p~=player and not isInLobbyTeam(p) then 
             setupESP(p)
         end 
