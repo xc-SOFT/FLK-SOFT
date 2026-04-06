@@ -462,7 +462,7 @@ local function showMinimizeNotification()
     corner.Parent = notifFrame
     
     local stroke = Instance.new("UIStroke")
-    stroke.Color = ESP_OUTLINE
+    stroke.Color = Color3.fromRGB(0, 170, 255)
     stroke.Thickness = 2
     stroke.Parent = notifFrame
     
