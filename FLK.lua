@@ -520,7 +520,7 @@ local function toggleGui()
             if isRussian then
                 player:Chat("/me Нажмите ["..keyStr.."] чтобы открыть меню")
             else
-                player:Chat("/me Press ["..keyStr.."] to open menu")
+                player:Chat("/me Press ["..keyStr.."] to reopen menu")
             end
         end)
     end
