@@ -108,6 +108,9 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     return
 end
 
+-- ✅ СООБЩЕНИЕ В КОНСОЛЬ ПРИ ЗАПУСКЕ
+print("FLK SOFT Started [v1.0 Release]")
+
 local ESP_FILL = Color3.fromRGB(0, 170, 255)
 local ESP_OUTLINE = Color3.fromRGB(0, 255, 255)
 local GUI_BG = Color3.fromRGB(35, 35, 45)
