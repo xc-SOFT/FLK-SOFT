@@ -108,7 +108,6 @@ if currentPlaceId ~= FLICK_PLACE_ID then
     return
 end
 
--- ✅ СООБЩЕНИЕ В КОНСОЛЬ ПРИ ЗАПУСКЕ
 print("FLK SOFT Started [v1.0 Release]")
 
 local ESP_FILL = Color3.fromRGB(0, 170, 255)
@@ -171,9 +170,9 @@ local labels = {
     esp="👁️ ESP",
     espOn="👁️ ESP: ON",
     espOff="👁️ ESP",
-    aim="🎯 Aimbot",
-    aimOn="🎯 Aimbot: ON",
-    aimOff="🎯 Aimbot",
+    aim="🎯 Aimlock",
+    aimOn="🎯 Aimlock: ON",
+    aimOff="🎯 Aimlock",
     hotkeys="⌨️ Hotkeys",
     espSettings="⚙️ ESP Settings",
     menuKey="Menu:",
